@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model AdminUser {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  sessions     AdminSession[]
+}
+
+model AdminSession {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Good {
+  id                String    @id @default(cuid())
+  name              String
+  description       String?
+  icon              String
+  color             String
+  pricingMode       String
+  pricePerSqm       Int?
+  fixedPrice        Int?
+  enabled           Boolean   @default(true)
+  required          Boolean   @default(false)
+  selectedByDefault Boolean   @default(false)
+  order             Int
+  archivedAt        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([archivedAt, order])
+}
+
+model Settings {
+  id              String   @id @default("default")
+  brandName       String   @default("ARCHIPELAG")
+  shortMark       String   @default("A / G")
+  instagramHandle String   @default("archipelag.design")
+  websiteHandle   String?  @default("archipelag.design")
+  websiteUrl      String?
+  taxLabel        String?  @default("вкл. НДС")
+  minArea         Float    @default(20)
+  maxArea         Float    @default(500)
+  defaultArea     Float    @default(85)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
