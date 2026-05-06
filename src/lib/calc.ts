@@ -58,7 +58,9 @@ export function clampArea(value: number, settings: Pick<SettingsView, 'minArea' 
 }
 
 export function makeEstimateMessage(area: number, lines: EstimateLine[], total: number, settings: SettingsView): string {
-  const goods = lines.length > 0 ? lines.map((line) => `- ${line.name}`).join('\n') : '- Нет выбранных позиций'
+  const goods = lines.length > 0
+    ? lines.map((line) => `- ${line.name}: ${line.priceRule} = ${formatRubles(line.amount)}`).join('\n')
+    : '- Нет выбранных позиций'
   const footer = settings.websiteHandle ? `\n\n${settings.websiteHandle}` : ''
 
   return [

@@ -24,9 +24,11 @@ function dataUrlToFile(dataUrl: string, filename: string): File {
 
 export function ExportPanel({ snapshot, onClose }: { snapshot: EstimateSnapshot | null; onClose: () => void }) {
   const cardRef = useRef<HTMLElement>(null)
+  const fallbackTextRef = useRef<HTMLTextAreaElement>(null)
   const [pngDataUrl, setPngDataUrl] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showCopyFallback, setShowCopyFallback] = useState(false)
   const [copyState, setCopyState] = useState<StepState>('idle')
   const [shareState, setShareState] = useState<StepState>('idle')
   const [instagramState, setInstagramState] = useState<StepState>('idle')
@@ -41,6 +43,7 @@ export function ExportPanel({ snapshot, onClose }: { snapshot: EstimateSnapshot 
 
     setPngDataUrl(null)
     setError(null)
+    setShowCopyFallback(false)
     setCopyState('idle')
     setShareState('idle')
     setInstagramState('idle')
@@ -73,11 +76,42 @@ export function ExportPanel({ snapshot, onClose }: { snapshot: EstimateSnapshot 
   }, [snapshot])
 
   async function copyMessage() {
+    setError(null)
+    setShowCopyFallback(false)
+
     try {
+      if (!window.isSecureContext || !navigator.clipboard?.writeText) {
+        throw new Error('Clipboard API requires secure context')
+      }
+
       await navigator.clipboard.writeText(estimateMessage)
       setCopyState('done')
     } catch {
-      setError('Не удалось скопировать текст автоматически. Выделите его вручную.')
+      const textarea = document.createElement('textarea')
+      textarea.value = estimateMessage
+      textarea.setAttribute('readonly', '')
+      textarea.style.position = 'fixed'
+      textarea.style.top = '0'
+      textarea.style.left = '-9999px'
+      document.body.appendChild(textarea)
+      textarea.select()
+      textarea.setSelectionRange(0, textarea.value.length)
+
+      try {
+        const copied = document.execCommand('copy')
+        if (copied) {
+          setCopyState('done')
+          return
+        }
+      } finally {
+        document.body.removeChild(textarea)
+      }
+
+      setShowCopyFallback(true)
+      window.setTimeout(() => {
+        fallbackTextRef.current?.focus()
+        fallbackTextRef.current?.select()
+      }, 0)
     }
   }
 
@@ -165,6 +199,12 @@ export function ExportPanel({ snapshot, onClose }: { snapshot: EstimateSnapshot 
                   <button className="button button-dark" type="button" onClick={copyMessage}>
                     {copyState === 'done' ? 'Текст скопирован' : 'Скопировать'}
                   </button>
+                  {showCopyFallback ? (
+                    <div className="copy-fallback">
+                      <p>Автокопирование недоступно на этом адресе. Выделите текст ниже и отправьте его вместе с PNG.</p>
+                      <textarea ref={fallbackTextRef} readOnly value={estimateMessage} />
+                    </div>
+                  ) : null}
                 </div>
               </li>
               <li className={shareState === 'done' ? 'complete' : copyState === 'done' ? 'active' : ''}>

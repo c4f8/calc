@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import { useMemo, useState, useTransition } from 'react'
+import { PasskeyManager } from '@/components/admin/PasskeyManager'
 import { EstimateCard } from '@/components/calculator/EstimateCard'
 import { calculateEstimateLines, calculateTotal } from '@/lib/calc'
 import type { EstimateSnapshot, GoodView, SettingsView } from '@/types/domain'
@@ -56,46 +57,49 @@ export function SettingsManager({ initialSettings, goods }: { initialSettings: S
 
   return (
     <div className="settings-grid">
-      <section className="settings-form panel-card">
-        <header className="admin-header-row compact">
-          <div>
-            <p className="eyebrow">Settings</p>
-            <h2>Бренд и расчёт</h2>
-            <p className="muted">Изменения видны в карточке справа до сохранения.</p>
+      <div className="settings-stack">
+        <section className="settings-form panel-card">
+          <header className="admin-header-row compact">
+            <div>
+              <p className="eyebrow">Settings</p>
+              <h2>Бренд и расчёт</h2>
+              <p className="muted">Изменения видны в карточке справа до сохранения.</p>
+            </div>
+            <button className="button button-dark" type="button" onClick={save} disabled={isPending}>{isPending ? 'Сохраняем' : 'Сохранить'}</button>
+          </header>
+
+          {status ? <p className="save-status">{status}</p> : null}
+
+          <div className="form-grid">
+            <label>Название бренда<input value={settings.brandName} onChange={(event) => patch({ brandName: event.target.value })} /></label>
+            <label>Короткий знак<input value={settings.shortMark} onChange={(event) => patch({ shortMark: event.target.value })} /></label>
+            <label>Instagram без @<input value={settings.instagramHandle} onChange={(event) => patch({ instagramHandle: event.target.value })} /></label>
+            <label>Website handle<input value={settings.websiteHandle ?? ''} onChange={(event) => patch({ websiteHandle: event.target.value })} /></label>
+            <label>Website URL<input value={settings.websiteUrl ?? ''} onChange={(event) => patch({ websiteUrl: event.target.value })} /></label>
+            <label>Налоговая строка<input value={settings.taxLabel ?? ''} onChange={(event) => patch({ taxLabel: event.target.value })} /></label>
+            <label>Минимум м²<input type="number" value={settings.minArea} onChange={(event) => patch({ minArea: Number(event.target.value) })} /></label>
+            <label>Максимум м²<input type="number" value={settings.maxArea} onChange={(event) => patch({ maxArea: Number(event.target.value) })} /></label>
+            <label>По умолчанию м²<input type="number" value={settings.defaultArea} onChange={(event) => patch({ defaultArea: Number(event.target.value) })} /></label>
           </div>
-          <button className="button button-dark" type="button" onClick={save} disabled={isPending}>{isPending ? 'Сохраняем' : 'Сохранить'}</button>
-        </header>
 
-        {status ? <p className="save-status">{status}</p> : null}
-
-        <div className="form-grid">
-          <label>Название бренда<input value={settings.brandName} onChange={(event) => patch({ brandName: event.target.value })} /></label>
-          <label>Короткий знак<input value={settings.shortMark} onChange={(event) => patch({ shortMark: event.target.value })} /></label>
-          <label>Instagram без @<input value={settings.instagramHandle} onChange={(event) => patch({ instagramHandle: event.target.value })} /></label>
-          <label>Website handle<input value={settings.websiteHandle ?? ''} onChange={(event) => patch({ websiteHandle: event.target.value })} /></label>
-          <label>Website URL<input value={settings.websiteUrl ?? ''} onChange={(event) => patch({ websiteUrl: event.target.value })} /></label>
-          <label>Налоговая строка<input value={settings.taxLabel ?? ''} onChange={(event) => patch({ taxLabel: event.target.value })} /></label>
-          <label>Минимум м²<input type="number" value={settings.minArea} onChange={(event) => patch({ minArea: Number(event.target.value) })} /></label>
-          <label>Максимум м²<input type="number" value={settings.maxArea} onChange={(event) => patch({ maxArea: Number(event.target.value) })} /></label>
-          <label>По умолчанию м²<input type="number" value={settings.defaultArea} onChange={(event) => patch({ defaultArea: Number(event.target.value) })} /></label>
-        </div>
-
-        <div className="sample-goods">
-          <p className="eyebrow">Пример состава</p>
-          <div>
-            {goods.map((good) => (
-              <button
-                key={good.id}
-                type="button"
-                className={sampleIds.has(good.id) || good.required ? 'active' : ''}
-                onClick={() => toggleSample(good)}
-              >
-                {good.name}
-              </button>
-            ))}
+          <div className="sample-goods">
+            <p className="eyebrow">Пример состава</p>
+            <div>
+              {goods.map((good) => (
+                <button
+                  key={good.id}
+                  type="button"
+                  className={sampleIds.has(good.id) || good.required ? 'active' : ''}
+                  onClick={() => toggleSample(good)}
+                >
+                  {good.name}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+        <PasskeyManager />
+      </div>
 
       <aside className="settings-preview">
         <div className="preview-label">Live preview</div>

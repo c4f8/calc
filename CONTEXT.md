@@ -148,7 +148,11 @@ _Avoid_: Comment, note, client brief, CRM record
 - Current mobile Calculator is verified against the approved reference direction: selected **Goods** list by default, compact "Изменить" editing state, custom CSS arrows instead of native disclosure markers, and no Next.js dev indicator covering the menu.
 - Approved customer-facing Calculator visual baseline remains the earlier monochrome phone prototype: light paper surface, thin dividers, black icon tiles, clear selected-**Goods** list, strong but restrained Mont typography, and low-noise actions.
 - Customer-facing Calculator should show selected **Goods** by default; editing all available **Goods** belongs behind an explicit "Изменить" state, not in the normal selected list.
+- Customer-facing selected **Goods** are non-interactive outside the explicit "Изменить" state, so accidental taps cannot remove services.
+- Customer-facing "Короткая сводка" is removed; the structured calculated text belongs in the guided export panel, not on the main Calculator screen.
 - Customer-facing top menu should be functional in the prototype and expose admin/navigation entry points without making them visually dominant.
+- Admin auth now supports passkeys through WebAuthn/SimpleWebAuthn while keeping password login as a reserve bootstrap path.
+- Passkey creation/sign-in requires a secure context: `localhost` for local desktop testing or a real HTTPS origin for iPhone/client testing; LAN `http://192.168...` is intentionally treated as not secure.
 
 ## Example dialogue
 

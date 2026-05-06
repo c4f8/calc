@@ -1,4 +1,5 @@
 import { loginAction } from './actions'
+import { PasskeyLogin } from '@/components/admin/PasskeyLogin'
 import { getAdminSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 
@@ -17,8 +18,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </div>
         <p className="eyebrow">Администрирование</p>
         <h1>Вход в каталог</h1>
-        <p className="muted">Доступ нужен для изменения товаров, цен и параметров карточки расчёта.</p>
+        <p className="muted">Основной вход для клиента — passkey. Пароль остаётся только как резерв для настройки.</p>
+        <PasskeyLogin />
         <form action={loginAction} className="stack-form">
+          <p className="eyebrow">Резервный вход</p>
           <label>
             Email
             <input name="email" type="email" defaultValue="admin@archipelag.design" autoComplete="email" required />

@@ -1,11 +1,11 @@
 'use client'
 
-import { AnimatePresence, LayoutGroup, motion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { ExportPanel } from '@/components/calculator/ExportPanel'
 import { AnimatedNumber } from '@/components/shared/AnimatedNumber'
-import { calculateEstimateLines, calculateTotal, clampArea, formatArea, formatPriceRule, formatRubles } from '@/lib/calc'
+import { calculateEstimateLines, calculateTotal, clampArea, formatArea, formatPriceRule } from '@/lib/calc'
 import { GoodGlyph } from '@/lib/icons'
 import type { EstimateSnapshot, GoodView, SettingsView } from '@/types/domain'
 
@@ -21,7 +21,6 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
   const [snapshot, setSnapshot] = useState<EstimateSnapshot | null>(null)
   const [isEditingGoods, setIsEditingGoods] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isSummaryOpen, setIsSummaryOpen] = useState(false)
 
   const visibleGoods = useMemo(() => goods.filter((good) => good.enabled).sort((a, b) => a.order - b.order), [goods])
   const lines = useMemo(() => calculateEstimateLines(visibleGoods, selectedIds, area), [area, selectedIds, visibleGoods])
@@ -42,6 +41,7 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
   }
 
   function toggleGood(good: GoodView) {
+    if (!isEditingGoods) return
     if (good.required) return
     setSelectedIds((current) => {
       const next = new Set(current)
@@ -139,52 +139,50 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
                 </button>
               </div>
 
-              <LayoutGroup>
-                <motion.div className="goods-list" layout>
-                  <AnimatePresence initial={false}>
-                    {displayedGoods.length > 0 ? (
-                      displayedGoods.map((good) => {
-                        const selected = good.required || selectedIds.has(good.id)
-                        return (
-                          <motion.button
-                            key={good.id}
-                            type="button"
-                            className={`good-row ${selected ? 'selected' : ''} ${good.required ? 'required' : ''} ${isEditingGoods ? 'editing' : ''}`}
-                            aria-pressed={selected}
-                            aria-disabled={good.required}
-                            onClick={() => toggleGood(good)}
-                            layout
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: selected || isEditingGoods ? 1 : 0.46, y: 0 }}
-                            exit={{ opacity: 0, y: -8 }}
-                            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                          >
-                            <span className="good-icon">
-                              <GoodGlyph name={good.icon} />
+              <motion.div className="goods-list">
+                <AnimatePresence initial={false}>
+                  {displayedGoods.length > 0 ? (
+                    displayedGoods.map((good) => {
+                      const selected = good.required || selectedIds.has(good.id)
+                      return (
+                        <motion.button
+                          key={good.id}
+                          type="button"
+                          className={`good-row ${selected ? 'selected' : ''} ${good.required ? 'required' : ''} ${isEditingGoods ? 'editing' : ''}`}
+                          aria-pressed={selected}
+                          aria-disabled={!isEditingGoods || good.required}
+                          disabled={!isEditingGoods || good.required}
+                          onClick={() => toggleGood(good)}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: selected || isEditingGoods ? 1 : 0.46, y: 0 }}
+                          exit={{ opacity: 0, y: -6 }}
+                          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                        >
+                          <span className="good-icon">
+                            <GoodGlyph name={good.icon} />
+                          </span>
+                          <span className="good-copy">
+                            <span className="good-title-line">
+                              <strong>{good.name}</strong>
+                              {good.required ? <em>в составе</em> : null}
                             </span>
-                            <span className="good-copy">
-                              <span className="good-title-line">
-                                <strong>{good.name}</strong>
-                                {good.required ? <em>в составе</em> : null}
-                              </span>
-                              {good.description ? <small>{good.description}</small> : null}
-                            </span>
-                            <span className="good-price">{formatPriceRule(good)}</span>
-                            {isEditingGoods && !good.required ? <span className="good-check" aria-hidden="true" /> : null}
-                          </motion.button>
-                        )
-                      })
-                    ) : (
-                      <motion.div className="empty-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                        Выберите товары через «Изменить».
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              </LayoutGroup>
+                            {good.description ? <small>{good.description}</small> : null}
+                          </span>
+                          <span className="good-price">{formatPriceRule(good)}</span>
+                          {isEditingGoods && !good.required ? <span className="good-check" aria-hidden="true" /> : null}
+                        </motion.button>
+                      )
+                    })
+                  ) : (
+                    <motion.div className="empty-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                      Выберите товары через «Изменить».
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             </section>
 
-            <motion.section className="total-card" layout>
+            <motion.section className="total-card">
               <div>
                 <span>Итого</span>
                 <small>для проекта {formatArea(area)} м²</small>
@@ -199,20 +197,6 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
               <span>Поделиться расчётом</span>
               <span className="button-arrow" aria-hidden="true" />
             </button>
-
-            <section className={`text-preview ${isSummaryOpen ? 'open' : ''}`}>
-              <button type="button" onClick={() => setIsSummaryOpen((value) => !value)}>
-                <span>Короткая сводка</span>
-                <span className="summary-arrow" aria-hidden="true" />
-              </button>
-              <AnimatePresence initial={false}>
-                {isSummaryOpen ? (
-                  <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
-                    {formatRubles(total)} · {lines.map((line) => line.name).join(', ') || 'без товаров'}
-                  </motion.p>
-                ) : null}
-              </AnimatePresence>
-            </section>
           </div>
         </div>
       </section>

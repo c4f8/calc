@@ -74,10 +74,15 @@ function SortableGoodRow({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
     >
-      <button className="drag-handle" type="button" {...sortable.attributes} {...sortable.listeners} aria-label="Переместить товар">
-        ⋮⋮
-      </button>
-      <span className="catalog-order">{String(index + 1).padStart(2, '0')}</span>
+      <div className="catalog-row-meta">
+        <button className="drag-handle" type="button" {...sortable.attributes} {...sortable.listeners} aria-label="Переместить товар">
+          <span />
+          <span />
+          <span />
+        </button>
+        <span className="catalog-order">{String(index + 1).padStart(2, '0')}</span>
+        <span className={`visibility-pill ${good.enabled ? 'visible' : ''}`}>{good.enabled ? 'Виден' : 'Скрыт'}</span>
+      </div>
       <div className="catalog-main-fields">
         <label>
           Название
@@ -109,35 +114,53 @@ function SortableGoodRow({
           />
         </label>
       </div>
-      <div className="icon-picker" aria-label="Иконка">
-        {iconOptions.map((icon) => (
-          <button
-            key={icon}
-            type="button"
-            className={good.icon === icon ? 'selected' : ''}
-            onClick={() => patch({ icon })}
-            title={iconLabels[icon]}
-          >
-            <GoodGlyph name={icon} />
-          </button>
-        ))}
+      <div className="admin-field-group">
+        <span className="field-group-label">Иконка</span>
+        <div className="icon-picker" aria-label="Иконка">
+          {iconOptions.map((icon) => (
+            <button
+              key={icon}
+              type="button"
+              className={good.icon === icon ? 'selected' : ''}
+              onClick={() => patch({ icon })}
+              title={iconLabels[icon]}
+            >
+              <GoodGlyph name={icon} />
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="color-picker" aria-label="Цвет">
-        {colorOptions.map((color) => (
-          <button
-            key={color}
-            type="button"
-            className={good.color === color ? 'selected' : ''}
-            style={{ background: color }}
-            onClick={() => patch({ color })}
-            aria-label={`Цвет ${color}`}
-          />
-        ))}
+      <div className="admin-field-group">
+        <span className="field-group-label">Акцент</span>
+        <div className="color-picker" aria-label="Цвет">
+          {colorOptions.map((color) => (
+            <button
+              key={color}
+              type="button"
+              className={good.color === color ? 'selected' : ''}
+              style={{ background: color }}
+              onClick={() => patch({ color })}
+              aria-label={`Цвет ${color}`}
+            />
+          ))}
+        </div>
       </div>
       <div className="catalog-switches">
-        <label><input type="checkbox" checked={good.enabled} onChange={(event) => patch({ enabled: event.target.checked })} /> Включён</label>
-        <label><input type="checkbox" checked={good.required} onChange={(event) => patch({ required: event.target.checked, selectedByDefault: event.target.checked ? true : good.selectedByDefault })} /> Обязательный</label>
-        <label><input type="checkbox" checked={good.selectedByDefault} disabled={good.required} onChange={(event) => patch({ selectedByDefault: event.target.checked })} /> По умолчанию</label>
+        <label className="switch-control">
+          <input type="checkbox" checked={good.enabled} onChange={(event) => patch({ enabled: event.target.checked })} />
+          <span className="switch-track" />
+          <span>Включён</span>
+        </label>
+        <label className="switch-control">
+          <input type="checkbox" checked={good.required} onChange={(event) => patch({ required: event.target.checked, selectedByDefault: event.target.checked ? true : good.selectedByDefault })} />
+          <span className="switch-track" />
+          <span>Обязательный</span>
+        </label>
+        <label className="switch-control">
+          <input type="checkbox" checked={good.selectedByDefault} disabled={good.required} onChange={(event) => patch({ selectedByDefault: event.target.checked })} />
+          <span className="switch-track" />
+          <span>По умолчанию</span>
+        </label>
       </div>
       <button className="archive-button" type="button" onClick={() => onArchive(good.id)}>Архив</button>
     </motion.article>
