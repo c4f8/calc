@@ -1,26 +1,29 @@
 -- CreateTable
 CREATE TABLE "AdminUser" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "passwordHash" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "AdminUser_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "AdminSession" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "tokenHash" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
-    "expiresAt" DATETIME NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "AdminSession_userId_fkey" FOREIGN KEY ("userId") REFERENCES "AdminUser" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "AdminSession_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Good" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "icon" TEXT NOT NULL,
@@ -32,25 +35,29 @@ CREATE TABLE "Good" (
     "required" BOOLEAN NOT NULL DEFAULT false,
     "selectedByDefault" BOOLEAN NOT NULL DEFAULT false,
     "order" INTEGER NOT NULL,
-    "archivedAt" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "archivedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Good_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Settings" (
-    "id" TEXT NOT NULL PRIMARY KEY DEFAULT 'default',
+    "id" TEXT NOT NULL DEFAULT 'default',
     "brandName" TEXT NOT NULL DEFAULT 'ARCHIPELAG',
     "shortMark" TEXT NOT NULL DEFAULT 'A / G',
     "instagramHandle" TEXT NOT NULL DEFAULT 'archipelag.design',
     "websiteHandle" TEXT DEFAULT 'archipelag.design',
     "websiteUrl" TEXT,
     "taxLabel" TEXT DEFAULT 'вкл. НДС',
-    "minArea" REAL NOT NULL DEFAULT 20,
-    "maxArea" REAL NOT NULL DEFAULT 500,
-    "defaultArea" REAL NOT NULL DEFAULT 85,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "minArea" DOUBLE PRECISION NOT NULL DEFAULT 20,
+    "maxArea" DOUBLE PRECISION NOT NULL DEFAULT 500,
+    "defaultArea" DOUBLE PRECISION NOT NULL DEFAULT 85,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Settings_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -67,3 +74,6 @@ CREATE INDEX "AdminSession_expiresAt_idx" ON "AdminSession"("expiresAt");
 
 -- CreateIndex
 CREATE INDEX "Good_archivedAt_order_idx" ON "Good"("archivedAt", "order");
+
+-- AddForeignKey
+ALTER TABLE "AdminSession" ADD CONSTRAINT "AdminSession_userId_fkey" FOREIGN KEY ("userId") REFERENCES "AdminUser"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -3,6 +3,8 @@ import { PasskeyLogin } from '@/components/admin/PasskeyLogin'
 import { getAdminSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 
+export const dynamic = 'force-dynamic'
+
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const session = await getAdminSession()
   if (session) redirect('/admin/catalog')

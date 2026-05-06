@@ -153,6 +153,13 @@ _Avoid_: Comment, note, client brief, CRM record
 - Customer-facing top menu should be functional in the prototype and expose admin/navigation entry points without making them visually dominant.
 - Admin auth now supports passkeys through WebAuthn/SimpleWebAuthn while keeping password login as a reserve bootstrap path.
 - Passkey creation/sign-in requires a secure context: `localhost` for local desktop testing or a real HTTPS origin for iPhone/client testing; LAN `http://192.168...` is intentionally treated as not secure.
+- Vercel preview/client feedback deployment uses hosted Postgres through Prisma, not SQLite, because Vercel serverless runtime cannot persist a local database file.
+- Vercel build command is `npm run build`, which runs `prisma migrate deploy`, seeds default settings/catalog/admin user, then runs `next build`.
+- Required Vercel environment variables are `DATABASE_URL`, `POSTGRES_URL_NON_POOLING`, `WEBAUTHN_ORIGIN`, `WEBAUTHN_RP_ID`, and `WEBAUTHN_RP_NAME`.
+- `DATABASE_URL` should be the pooled/runtime Postgres connection string when the provider gives one; `POSTGRES_URL_NON_POOLING` should be the direct/non-pooling migration connection string.
+- `WEBAUTHN_ORIGIN` must exactly match the deployed HTTPS origin, for example `https://arch.vercel.app`; `WEBAUTHN_RP_ID` must be only the hostname, for example `arch.vercel.app`.
+- The seeded bootstrap admin is `admin@archipelag.design` with password `archipelag`; this is only a reserve path so the admin can enter Settings and register a passkey.
+- A full local production build now requires a real Postgres `DATABASE_URL`; `prisma validate`, typecheck, and lint can still be run without connecting to production.
 
 ## Example dialogue
 
