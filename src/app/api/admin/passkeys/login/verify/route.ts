@@ -1,10 +1,25 @@
 import { verifyAuthenticationResponse, type AuthenticationResponseJSON } from '@simplewebauthn/server'
 import { NextResponse } from 'next/server'
+import { requireSameOriginRequest } from '@/lib/admin-mutation-guard'
+import { writeAdminAuditEvent } from '@/lib/audit'
 import { createAdminSession } from '@/lib/auth'
 import { consumePasskeyChallenge, getWebAuthnRequestConfig, parseTransports } from '@/lib/passkeys'
 import { prisma } from '@/lib/prisma'
+import { consumeRateLimit, makeRequestRateLimitKey } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
+  const originFailure = requireSameOriginRequest(request)
+  if (originFailure) return originFailure
+
+  const rateLimit = await consumeRateLimit(
+    makeRequestRateLimitKey('passkey-login-verify', request.headers),
+    20,
+    15 * 60 * 1000,
+  )
+  if (!rateLimit.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
+
   const expectedChallenge = await consumePasskeyChallenge('authentication', null)
   if (!expectedChallenge) {
     return NextResponse.json({ error: 'Missing or expired challenge' }, { status: 400 })
@@ -48,6 +63,14 @@ export async function POST(request: Request) {
   })
 
   await createAdminSession(passkey.userId)
+
+  await writeAdminAuditEvent({
+    type: 'passkey.login',
+    userId: passkey.userId,
+    actorEmail: passkey.user.email,
+    headers: request.headers,
+    metadata: { credentialId: passkey.id },
+  })
 
   return NextResponse.json({ verified: true })
 }

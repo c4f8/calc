@@ -1,6 +1,6 @@
 import { generateRegistrationOptions } from '@simplewebauthn/server'
 import { NextResponse } from 'next/server'
-import { getAdminSession } from '@/lib/auth'
+import { requireAdminMutation } from '@/lib/admin-mutation-guard'
 import {
   encodeWebAuthnUserId,
   getWebAuthnRequestConfig,
@@ -8,12 +8,22 @@ import {
   rememberPasskeyChallenge,
 } from '@/lib/passkeys'
 import { prisma } from '@/lib/prisma'
+import { consumeRateLimit, makeRequestRateLimitKey } from '@/lib/rate-limit'
 
 export async function POST(request: Request) {
-  const session = await getAdminSession()
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const guard = await requireAdminMutation(request)
+  if (!guard.ok) return guard.response
+
+  const rateLimit = await consumeRateLimit(
+    makeRequestRateLimitKey('passkey-register-options', request.headers, guard.session.userId),
+    5,
+    15 * 60 * 1000,
+  )
+  if (!rateLimit.allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
+
+  const session = guard.session
 
   const { rpID, rpName } = getWebAuthnRequestConfig(request)
   const passkeys = await prisma.adminPasskey.findMany({ where: { userId: session.userId } })

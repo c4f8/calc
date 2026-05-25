@@ -11,6 +11,14 @@ if (!databaseUrl) {
 
 const adapter = new PrismaPg({ connectionString: databaseUrl })
 const prisma = new PrismaClient({ adapter })
+const LOCAL_DATABASE_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', 'host.docker.internal'])
+const ADMIN_PASSWORD_PLACEHOLDERS = new Set([
+  'archipelag',
+  'replace-with-a-unique-launch-password',
+  'password',
+  'changeme',
+  'change-me',
+])
 
 const goods = [
   {
@@ -119,6 +127,48 @@ const goods = [
   },
 ]
 
+function getBootstrapAdmin() {
+  const isProductionLike = isProductionLikeSeedEnvironment()
+  const email =
+    process.env.ADMIN_EMAIL?.trim().toLowerCase() || (isProductionLike ? '' : 'admin@archipelag.design')
+  const name = process.env.ADMIN_NAME?.trim() || (isProductionLike ? '' : 'ARCHIPELAG Admin')
+  const password = process.env.ADMIN_PASSWORD || (isProductionLike ? '' : 'archipelag')
+
+  if (isProductionLike) {
+    if (!email || !name || !password) {
+      throw new Error('Production-like seed requires ADMIN_EMAIL, ADMIN_NAME, and ADMIN_PASSWORD')
+    }
+
+    if (ADMIN_PASSWORD_PLACEHOLDERS.has(password.trim().toLowerCase()) || password.length < 14) {
+      throw new Error('Production-like ADMIN_PASSWORD must be unique and at least 14 characters')
+    }
+  }
+
+  return { email, name, password }
+}
+
+function isProductionLikeSeedEnvironment(): boolean {
+  return (
+    process.env.NODE_ENV === 'production' ||
+    Boolean(process.env.VERCEL) ||
+    Boolean(process.env.VERCEL_ENV) ||
+    hasRemoteDatabaseHost(process.env.DATABASE_URL)
+  )
+}
+
+function hasRemoteDatabaseHost(value: string | undefined): boolean {
+  if (!value) {
+    return false
+  }
+
+  try {
+    const host = new URL(value).hostname.toLowerCase()
+    return Boolean(host) && !LOCAL_DATABASE_HOSTS.has(host)
+  } catch {
+    return false
+  }
+}
+
 async function main() {
   await prisma.settings.upsert({
     where: { id: 'default' },
@@ -137,13 +187,14 @@ async function main() {
     },
   })
 
+  const admin = getBootstrapAdmin()
   await prisma.adminUser.upsert({
-    where: { email: 'admin@archipelag.design' },
-    update: { name: 'ARCHIPELAG Admin' },
+    where: { email: admin.email },
+    update: { name: admin.name },
     create: {
-      email: 'admin@archipelag.design',
-      name: 'ARCHIPELAG Admin',
-      passwordHash: hashPassword('archipelag'),
+      email: admin.email,
+      name: admin.name,
+      passwordHash: hashPassword(admin.password),
     },
   })
 

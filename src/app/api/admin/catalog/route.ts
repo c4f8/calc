@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { isAdminRequest } from '@/lib/auth'
+import { requireAdminMutation } from '@/lib/admin-mutation-guard'
+import { writeAdminAuditEvent } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
 import { catalogPayloadSchema } from '@/lib/validation'
 
 export async function PUT(request: Request) {
-  if (!(await isAdminRequest())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const guard = await requireAdminMutation(request)
+  if (!guard.ok) return guard.response
 
   const payload = catalogPayloadSchema.safeParse(await request.json())
   if (!payload.success) {
@@ -46,6 +46,14 @@ export async function PUT(request: Request) {
         await tx.good.create({ data })
       }
     }
+  })
+
+  await writeAdminAuditEvent({
+    type: 'catalog.save',
+    userId: guard.session.userId,
+    actorEmail: guard.session.user.email,
+    headers: request.headers,
+    metadata: { goods: goods.length, archived: archivedIds.length },
   })
 
   revalidatePath('/')

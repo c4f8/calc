@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { isAdminRequest } from '@/lib/auth'
+import { requireAdminMutation } from '@/lib/admin-mutation-guard'
+import { writeAdminAuditEvent } from '@/lib/audit'
 import { prisma } from '@/lib/prisma'
 import { settingsPayloadSchema } from '@/lib/validation'
 
 export async function PUT(request: Request) {
-  if (!(await isAdminRequest())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const guard = await requireAdminMutation(request)
+  if (!guard.ok) return guard.response
 
   const payload = settingsPayloadSchema.safeParse(await request.json())
   if (!payload.success) {
@@ -37,6 +37,18 @@ export async function PUT(request: Request) {
       websiteHandle: data.websiteHandle?.trim() || null,
       websiteUrl: data.websiteUrl?.trim() || null,
       taxLabel: data.taxLabel?.trim() || null,
+      minArea: data.minArea,
+      maxArea: data.maxArea,
+      defaultArea: data.defaultArea,
+    },
+  })
+
+  await writeAdminAuditEvent({
+    type: 'settings.save',
+    userId: guard.session.userId,
+    actorEmail: guard.session.user.email,
+    headers: request.headers,
+    metadata: {
       minArea: data.minArea,
       maxArea: data.maxArea,
       defaultArea: data.defaultArea,

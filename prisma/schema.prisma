@@ -59,6 +59,29 @@ model AdminAuthChallenge {
   @@index([expiresAt])
 }
 
+model AdminAuditEvent {
+  id         String   @id @default(cuid())
+  type       String
+  userId     String?
+  actorEmail String?
+  ipHash     String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([type, createdAt])
+  @@index([userId, createdAt])
+}
+
+model AdminRateLimit {
+  key       String   @id
+  count     Int      @default(0)
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
+
+  @@index([resetAt])
+}
+
 model Good {
   id                String    @id @default(cuid())
   name              String
