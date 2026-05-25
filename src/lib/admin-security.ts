@@ -49,11 +49,17 @@ export function isSameOriginRequest(
 
   if (expectedOrigin.state === 'invalid') return false
 
-  if (requestOrigin && expectedOrigin.state === 'valid') {
-    return normalizeOrigin(requestOrigin) === expectedOrigin.origin
-  }
+  if (requestOrigin) {
+    const normalizedRequestOrigin = normalizeOrigin(requestOrigin)
+    if (!normalizedRequestOrigin) return false
 
-  if (requestOrigin) return false
+    if (expectedOrigin.state === 'valid' && normalizedRequestOrigin === expectedOrigin.origin) {
+      return true
+    }
+
+    const hostOrigin = getExpectedOriginState(headers, undefined)
+    return hostOrigin.state === 'valid' && normalizedRequestOrigin === hostOrigin.origin
+  }
 
   const fetchSite = headers.get('sec-fetch-site')
   if (fetchSite) return fetchSite === 'same-origin'

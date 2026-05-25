@@ -53,6 +53,17 @@ test('same-origin request passes when origin matches configured production origi
   )
 })
 
+test('same-origin request passes when origin matches request host despite different configured origin', () => {
+  assert.equal(
+    isSameOriginRequest(
+      headers({ origin: 'https://aglab.pro', host: 'aglab.pro' }),
+      'https://info.aglab.pro',
+      true,
+    ),
+    true,
+  )
+})
+
 test('cross-origin request fails when origin differs', () => {
   assert.equal(
     isSameOriginRequest(
