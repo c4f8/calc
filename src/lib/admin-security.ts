@@ -31,6 +31,10 @@ function getExpectedOriginState(headers: Headers, configuredOrigin = process.env
     return origin ? { state: 'valid', origin } : { state: 'invalid' }
   }
 
+  return getHostOriginState(headers)
+}
+
+function getHostOriginState(headers: Headers): ExpectedOriginState {
   const host = firstHeaderValue(headers.get('x-forwarded-host')) || firstHeaderValue(headers.get('host'))
   if (!host) return { state: 'absent' }
 
@@ -57,7 +61,7 @@ export function isSameOriginRequest(
       return true
     }
 
-    const hostOrigin = getExpectedOriginState(headers, undefined)
+    const hostOrigin = getHostOriginState(headers)
     return hostOrigin.state === 'valid' && normalizedRequestOrigin === hostOrigin.origin
   }
 

@@ -64,6 +64,21 @@ test('same-origin request passes when origin matches request host despite differ
   )
 })
 
+test('same-origin request host fallback works when configured origin comes from environment', () => {
+  const previousOrigin = process.env.WEBAUTHN_ORIGIN
+  process.env.WEBAUTHN_ORIGIN = 'https://info.aglab.pro'
+
+  try {
+    assert.equal(
+      isSameOriginRequest(headers({ origin: 'https://aglab.pro', host: 'aglab.pro' }), undefined, true),
+      true,
+    )
+  } finally {
+    if (previousOrigin === undefined) delete process.env.WEBAUTHN_ORIGIN
+    else process.env.WEBAUTHN_ORIGIN = previousOrigin
+  }
+})
+
 test('cross-origin request fails when origin differs', () => {
   assert.equal(
     isSameOriginRequest(
