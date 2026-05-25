@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import { useMemo, useState, useTransition } from 'react'
-import { PasskeyManager } from '@/components/admin/PasskeyManager'
 import { EstimateCard } from '@/components/calculator/EstimateCard'
 import { calculateEstimateLines, calculateTotal } from '@/lib/calc'
 import type { EstimateSnapshot, GoodView, SettingsView } from '@/types/domain'
@@ -98,7 +97,6 @@ export function SettingsManager({ initialSettings, goods }: { initialSettings: S
             </div>
           </div>
         </section>
-        <PasskeyManager />
       </div>
 
       <aside className="settings-preview">

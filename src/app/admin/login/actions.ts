@@ -10,25 +10,25 @@ import { consumeRateLimit, makeRequestRateLimitKey } from '@/lib/rate-limit'
 
 export async function loginAction(formData: FormData) {
   const requestHeaders = await headers()
-  const email = String(formData.get('email') ?? '').trim().toLowerCase()
+  const login = String(formData.get('login') ?? formData.get('email') ?? '').trim().toLowerCase()
   const password = String(formData.get('password') ?? '')
-  const rateLimit = await consumeRateLimit(makeRequestRateLimitKey('password-login', requestHeaders, email), 5, 15 * 60 * 1000)
+  const rateLimit = await consumeRateLimit(makeRequestRateLimitKey('password-login', requestHeaders, login), 5, 15 * 60 * 1000)
 
   if (!rateLimit.allowed) {
     await writeAdminAuditEvent({
       type: 'login.failure',
-      actorEmail: email || null,
+      actorEmail: login || null,
       headers: requestHeaders,
       metadata: { reason: 'rate_limited', retryAfterSeconds: rateLimit.retryAfterSeconds },
     })
     redirect('/admin/login?error=1')
   }
 
-  const user = await prisma.adminUser.findUnique({ where: { email } })
+  const user = await prisma.adminUser.findUnique({ where: { email: login } })
   if (!user || !verifyPassword(password, user.passwordHash)) {
     await writeAdminAuditEvent({
       type: 'login.failure',
-      actorEmail: email || null,
+      actorEmail: login || null,
       headers: requestHeaders,
       metadata: { reason: 'invalid_credentials' },
     })

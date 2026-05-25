@@ -130,7 +130,7 @@ const goods = [
 function getBootstrapAdmin() {
   const isProductionLike = isProductionLikeSeedEnvironment()
   const email =
-    process.env.ADMIN_EMAIL?.trim().toLowerCase() || (isProductionLike ? '' : 'admin@archipelag.design')
+    process.env.ADMIN_EMAIL?.trim().toLowerCase() || (isProductionLike ? '' : 'archipelag')
   const name = process.env.ADMIN_NAME?.trim() || (isProductionLike ? '' : 'ARCHIPELAG Admin')
   const password = process.env.ADMIN_PASSWORD || (isProductionLike ? '' : 'archipelag')
 
