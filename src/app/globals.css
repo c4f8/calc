@@ -340,6 +340,26 @@ h2 {
   display: grid;
   gap: 0;
   margin-top: 12px;
+  transform-origin: 50% 0;
+}
+
+.goods-list::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(23, 23, 23, .2), transparent);
+  opacity: 0;
+  transform: scaleX(.9);
+  transform-origin: 50% 50%;
+  transition: opacity .28s var(--ease-liquid), transform .34s var(--ease-liquid);
+}
+
+.goods-list.editing::before {
+  opacity: .75;
+  transform: scaleX(1);
 }
 
 .mode-segment {
@@ -351,6 +371,7 @@ h2 {
   border: 1px solid var(--line-strong);
   border-radius: 8px;
   background: rgba(255, 255, 255, .38);
+  box-shadow: inset 0 1px 0 rgba(251, 250, 247, .62);
   padding: 4px;
   isolation: isolate;
 }
@@ -368,9 +389,10 @@ h2 {
   font-size: 11px;
   font-weight: 600;
   line-height: 1.15;
+  isolation: isolate;
   overflow: hidden;
   cursor: pointer;
-  transition: background .22s var(--ease), color .22s var(--ease);
+  transition: background .18s var(--ease), color .18s var(--ease);
 }
 
 .mode-segment button.active {
@@ -386,6 +408,18 @@ h2 {
   border-radius: 6px;
   background: var(--ink);
   box-shadow: 0 10px 22px rgba(23, 23, 23, .18), inset 0 0 0 1px rgba(251, 250, 247, .08);
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.mode-segment-thumb::before {
+  content: '';
+  position: absolute;
+  inset: -14px -10px;
+  background:
+    radial-gradient(60% 80% at 22% 50%, rgba(251, 250, 247, .24), transparent 62%),
+    radial-gradient(60% 80% at 78% 50%, rgba(251, 250, 247, .12), transparent 64%);
+  opacity: .45;
 }
 
 .mode-segment-thumb::after {
@@ -394,13 +428,34 @@ h2 {
   inset: -2px -14px;
   background: linear-gradient(90deg, transparent 12%, rgba(251, 250, 247, .18), transparent 88%);
   opacity: .28;
-  transform: skewX(-18deg);
+  transform: translateX(-18%) skewX(-18deg);
+}
+
+.mode-segment button.active .mode-segment-thumb::after {
+  animation: mode-ink-sweep .52s var(--ease-liquid) both;
 }
 
 .mode-segment-label {
   position: relative;
   z-index: 1;
   display: block;
+  transform: translateZ(0);
+}
+
+@keyframes mode-ink-sweep {
+  0% {
+    opacity: .12;
+    transform: translateX(-28%) skewX(-18deg);
+  }
+
+  48% {
+    opacity: .34;
+  }
+
+  100% {
+    opacity: .2;
+    transform: translateX(18%) skewX(-18deg);
+  }
 }
 
 .good-row {
@@ -418,7 +473,8 @@ h2 {
   padding: 10px 0;
   text-align: left;
   cursor: pointer;
-  transform-origin: 50% 50%;
+  transform-origin: 50% 0;
+  will-change: transform, opacity;
   transition: border-color .32s var(--ease-liquid), background .32s var(--ease-liquid), transform .32s var(--ease-liquid);
 }
 
@@ -433,7 +489,7 @@ h2 {
 }
 
 .good-row.editing:not(.selected) {
-  opacity: .68;
+  color: var(--ink-soft);
 }
 
 .good-row:active {
@@ -518,6 +574,7 @@ h2 {
   gap: 3px;
   text-align: right;
   min-width: max-content;
+  transform-origin: 100% 50%;
 }
 
 .good-price-stack small {
@@ -538,6 +595,13 @@ h2 {
   font-size: 12px;
   line-height: 1;
   transform-origin: center;
+  transition: background .22s var(--ease-liquid), border-color .22s var(--ease-liquid), color .22s var(--ease-liquid);
+}
+
+.good-row.selected .good-check {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--card);
 }
 
 .good-row.selected .good-check::after {

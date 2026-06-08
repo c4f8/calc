@@ -15,6 +15,46 @@ function makeInitialSelectedIds(goods: GoodView[]): Set<string> {
 
 const calculationModes: CalculationMode[] = ['express', 'individual']
 const liquidEase: [number, number, number, number] = [0.16, 1, 0.3, 1]
+type ModeDirection = -1 | 0 | 1
+
+type GoodRowMotionState = {
+  selected: boolean
+  modeDirection: ModeDirection
+}
+
+const goodsRowVariants = {
+  initial: ({ modeDirection }: GoodRowMotionState) => ({
+    opacity: 0,
+    x: modeDirection * 10,
+    y: modeDirection === 0 ? -8 : 0,
+    scale: 0.992,
+    filter: 'blur(5px)',
+  }),
+  animate: ({ selected }: GoodRowMotionState) => ({
+    opacity: selected ? 1 : 0.58,
+    x: 0,
+    y: 0,
+    scale: 1,
+    filter: 'blur(0px)',
+  }),
+  exit: ({ modeDirection }: GoodRowMotionState) => ({
+    opacity: 0,
+    x: modeDirection * -10,
+    y: modeDirection === 0 ? -8 : 0,
+    scale: 0.992,
+    filter: 'blur(5px)',
+  }),
+}
+
+function getGoodsRowTransition(index: number, isEditingGoods: boolean, modeDirection: ModeDirection, shouldReduceMotion: boolean) {
+  if (shouldReduceMotion) return { duration: 0 }
+  return {
+    duration: modeDirection === 0 ? 0.32 : 0.26,
+    ease: liquidEase,
+    delay: modeDirection === 0 && isEditingGoods ? Math.min(index, 4) * 0.024 : 0,
+    layout: { duration: 0.36, ease: liquidEase },
+  }
+}
 
 export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; settings: SettingsView }) {
   const [areaInput, setAreaInput] = useState(String(settings.defaultArea))
@@ -25,10 +65,13 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
   const [snapshot, setSnapshot] = useState<EstimateSnapshot | null>(null)
   const [isEditingGoods, setIsEditingGoods] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const shouldReduceMotion = useReducedMotion()
+  const [modeDirection, setModeDirection] = useState<ModeDirection>(0)
+  const shouldReduceMotion = useReducedMotion() ?? false
 
-  const liquidTransition = shouldReduceMotion ? { duration: 0 } : { duration: 0.46, ease: liquidEase }
-  const presenceTransition = shouldReduceMotion ? { duration: 0 } : { duration: 0.28, ease: liquidEase }
+  const liquidTransition = shouldReduceMotion ? { duration: 0 } : { duration: 0.38, ease: liquidEase }
+  const selectorTransition = shouldReduceMotion ? { duration: 0 } : { duration: 0.5, ease: liquidEase }
+  const stackTransition = shouldReduceMotion ? { duration: 0 } : { duration: 0.32, ease: liquidEase }
+  const presenceTransition = shouldReduceMotion ? { duration: 0 } : { duration: 0.22, ease: liquidEase }
 
   const visibleGoods = useMemo(
     () => goods.filter((good) => good.enabled && isGoodAvailableInMode(good, calculationMode)).sort((a, b) => a.order - b.order),
@@ -64,7 +107,15 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
 
   function selectCalculationMode(mode: CalculationMode) {
     if (mode === calculationMode) return
+    const currentIndex = calculationModes.indexOf(calculationMode)
+    const nextIndex = calculationModes.indexOf(mode)
+    setModeDirection(nextIndex > currentIndex ? 1 : -1)
     setCalculationMode(mode)
+  }
+
+  function toggleEditingGoods() {
+    setModeDirection(0)
+    setIsEditingGoods((value) => !value)
   }
 
   function openExport() {
@@ -105,7 +156,7 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
                 initial={{ opacity: 0, y: -8, filter: 'blur(8px)' }}
                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 exit={{ opacity: 0, y: -8, filter: 'blur(8px)' }}
-                transition={{ duration: 0.24 }}
+                transition={presenceTransition}
                 aria-label="Меню"
               >
                 <Link href="/">Калькулятор</Link>
@@ -154,13 +205,13 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
               <motion.section className="goods-section" layout transition={liquidTransition}>
                 <motion.div className="section-row selected-row-heading" layout transition={liquidTransition}>
                   <motion.h1 layout="position" transition={liquidTransition}>Выбранные товары</motion.h1>
-                  <motion.button className="change-link" type="button" layout onClick={() => setIsEditingGoods((value) => !value)} transition={liquidTransition}>
+                  <motion.button className="change-link" type="button" layout onClick={toggleEditingGoods} transition={liquidTransition}>
                     <AnimatePresence mode="wait" initial={false}>
                       <motion.span
                         key={isEditingGoods ? 'done' : 'edit'}
-                        initial={{ opacity: 0, y: 5, filter: 'blur(4px)' }}
+                        initial={{ opacity: 0, y: 4, filter: 'blur(3px)' }}
                         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                        exit={{ opacity: 0, y: -5, filter: 'blur(4px)' }}
+                        exit={{ opacity: 0, y: -4, filter: 'blur(3px)' }}
                         transition={presenceTransition}
                       >
                         {isEditingGoods ? 'Готово' : 'Изменить'}
@@ -180,36 +231,42 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
                       onClick={() => selectCalculationMode(mode)}
                     >
                       {calculationMode === mode ? (
-                        <motion.span className="mode-segment-thumb" layoutId="mode-segment-thumb" transition={liquidTransition} aria-hidden="true" />
+                        <motion.span
+                          className="mode-segment-thumb"
+                          layoutId="mode-segment-thumb"
+                          initial={false}
+                          animate={modeDirection === 0 ? { scaleX: 1 } : { scaleX: [1, 1.075, 1] }}
+                          transition={selectorTransition}
+                          aria-hidden="true"
+                        />
                       ) : null}
                       <span className="mode-segment-label">{formatCalculationMode(mode)}</span>
                     </button>
                   ))}
                 </motion.div>
 
-                <motion.div className="goods-list" layout transition={liquidTransition}>
+                <motion.div className={`goods-list ${isEditingGoods ? 'editing' : 'compact'}`} layout transition={liquidTransition}>
                   <AnimatePresence initial={false} mode="popLayout">
                     {displayedGoods.length > 0 ? (
                       displayedGoods.map((good, index) => {
                         const selected = good.required || selectedIds.has(good.id)
+                        const rowMotionState = { selected, modeDirection }
                         return (
                           <motion.button
                             key={good.id}
-                            layout
+                            layout="position"
                             type="button"
                             className={`good-row ${selected ? 'selected' : ''} ${good.required ? 'required' : ''} ${isEditingGoods ? 'editing' : ''}`}
                             aria-pressed={selected}
                             aria-disabled={!isEditingGoods || good.required}
                             disabled={!isEditingGoods || good.required}
                             onClick={() => toggleGood(good)}
-                            initial={{ opacity: 0, y: 14, scale: 0.985, filter: 'blur(8px)' }}
-                            animate={{ opacity: selected ? 1 : 0.62, y: 0, scale: 1, filter: 'blur(0px)' }}
-                            exit={{ opacity: 0, y: -12, scale: 0.985, filter: 'blur(7px)' }}
-                            transition={
-                              shouldReduceMotion
-                                ? { duration: 0 }
-                                : { duration: 0.34, ease: liquidEase, delay: Math.min(index, 5) * 0.018, layout: { duration: 0.46, ease: liquidEase } }
-                            }
+                            custom={rowMotionState}
+                            variants={goodsRowVariants}
+                            initial="initial"
+                            animate="animate"
+                            exit="exit"
+                            transition={getGoodsRowTransition(index, isEditingGoods, modeDirection, shouldReduceMotion)}
                           >
                             <motion.span className="good-icon" layout transition={liquidTransition}>
                               <GoodGlyph name={good.icon} />
@@ -226,9 +283,9 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
                                 key={`${good.id}-${calculationMode}`}
                                 className="good-price-stack"
                                 layout="position"
-                                initial={{ opacity: 0, y: 6, filter: 'blur(5px)' }}
+                                initial={{ opacity: 0, y: 4, filter: 'blur(3px)' }}
                                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                                exit={{ opacity: 0, y: -6, filter: 'blur(5px)' }}
+                                exit={{ opacity: 0, y: -4, filter: 'blur(3px)' }}
                                 transition={presenceTransition}
                               >
                                 <span className="good-price">{formatPriceRule(good, calculationMode)}</span>
@@ -242,10 +299,10 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
                                 <motion.span
                                   className="good-check"
                                   layout
-                                  initial={{ opacity: 0, scale: 0.72, filter: 'blur(4px)' }}
+                                  initial={{ opacity: 0, scale: 0.82, filter: 'blur(3px)' }}
                                   animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                                  exit={{ opacity: 0, scale: 0.72, filter: 'blur(4px)' }}
-                                  transition={presenceTransition}
+                                  exit={{ opacity: 0, scale: 0.82, filter: 'blur(3px)' }}
+                                  transition={stackTransition}
                                   aria-hidden="true"
                                 />
                               ) : null}
@@ -257,9 +314,9 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
                       <motion.div
                         className="empty-state"
                         layout
-                        initial={{ opacity: 0, y: 10, filter: 'blur(6px)' }}
+                        initial={{ opacity: 0, y: -8, filter: 'blur(4px)' }}
                         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                        exit={{ opacity: 0, y: -8, filter: 'blur(6px)' }}
+                        exit={{ opacity: 0, y: -8, filter: 'blur(4px)' }}
                         transition={presenceTransition}
                       >
                         Выберите товары через «Изменить».
@@ -277,9 +334,9 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
                       <motion.small
                         key={`${calculationMode}-${area}`}
                         className="total-meta"
-                        initial={{ opacity: 0, y: 6, filter: 'blur(4px)' }}
+                        initial={{ opacity: 0, y: 4, filter: 'blur(3px)' }}
                         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                        exit={{ opacity: 0, y: -6, filter: 'blur(4px)' }}
+                        exit={{ opacity: 0, y: -4, filter: 'blur(3px)' }}
                         transition={presenceTransition}
                       >
                         {formatCalculationMode(calculationMode)} · {formatArea(area)} м²
