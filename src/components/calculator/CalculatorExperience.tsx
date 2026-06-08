@@ -5,25 +5,31 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { ExportPanel } from '@/components/calculator/ExportPanel'
 import { AnimatedNumber } from '@/components/shared/AnimatedNumber'
-import { calculateEstimateLines, calculateTotal, clampArea, formatArea, formatPriceRule } from '@/lib/calc'
+import { calculateEstimateLines, calculateTotal, clampArea, formatArea, formatCalculationMode, formatPriceRule, hasDifferentModePrices, isGoodAvailableInMode } from '@/lib/calc'
 import { GoodGlyph } from '@/lib/icons'
-import type { EstimateSnapshot, GoodView, SettingsView } from '@/types/domain'
+import type { CalculationMode, EstimateSnapshot, GoodView, SettingsView } from '@/types/domain'
 
 function makeInitialSelectedIds(goods: GoodView[]): Set<string> {
   return new Set(goods.filter((good) => good.enabled && (good.required || good.selectedByDefault)).map((good) => good.id))
 }
 
+const calculationModes: CalculationMode[] = ['express', 'individual']
+
 export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; settings: SettingsView }) {
   const [areaInput, setAreaInput] = useState(String(settings.defaultArea))
   const [area, setArea] = useState(settings.defaultArea)
+  const [calculationMode, setCalculationMode] = useState<CalculationMode>('express')
   const [selectedIds, setSelectedIds] = useState(() => makeInitialSelectedIds(goods))
   const [hint, setHint] = useState<string | null>(null)
   const [snapshot, setSnapshot] = useState<EstimateSnapshot | null>(null)
   const [isEditingGoods, setIsEditingGoods] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
-  const visibleGoods = useMemo(() => goods.filter((good) => good.enabled).sort((a, b) => a.order - b.order), [goods])
-  const lines = useMemo(() => calculateEstimateLines(visibleGoods, selectedIds, area), [area, selectedIds, visibleGoods])
+  const visibleGoods = useMemo(
+    () => goods.filter((good) => good.enabled && isGoodAvailableInMode(good, calculationMode)).sort((a, b) => a.order - b.order),
+    [calculationMode, goods]
+  )
+  const lines = useMemo(() => calculateEstimateLines(visibleGoods, selectedIds, area, calculationMode), [area, calculationMode, selectedIds, visibleGoods])
   const total = useMemo(() => calculateTotal(lines), [lines])
   const selectedGoodIds = useMemo(() => new Set(lines.map((line) => line.goodId)), [lines])
   const displayedGoods = isEditingGoods ? visibleGoods : visibleGoods.filter((good) => selectedGoodIds.has(good.id))
@@ -53,6 +59,7 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
 
   function openExport() {
     setSnapshot({
+      calculationMode,
       area,
       total,
       lines,
@@ -139,6 +146,21 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
                 </button>
               </div>
 
+              <div className="mode-segment" role="tablist" aria-label="Тип расчёта">
+                {calculationModes.map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    role="tab"
+                    aria-selected={calculationMode === mode}
+                    className={calculationMode === mode ? 'active' : ''}
+                    onClick={() => setCalculationMode(mode)}
+                  >
+                    {formatCalculationMode(mode)}
+                  </button>
+                ))}
+              </div>
+
               <motion.div className="goods-list">
                 <AnimatePresence initial={false}>
                   {displayedGoods.length > 0 ? (
@@ -168,7 +190,12 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
                             </span>
                             {good.description ? <small>{good.description}</small> : null}
                           </span>
-                          <span className="good-price">{formatPriceRule(good)}</span>
+                          <span className="good-price-stack">
+                            <span className="good-price">{formatPriceRule(good, calculationMode)}</span>
+                            {hasDifferentModePrices(good) ? (
+                              <small>{formatPriceRule(good, calculationMode === 'express' ? 'individual' : 'express')}</small>
+                            ) : null}
+                          </span>
                           {isEditingGoods && !good.required ? <span className="good-check" aria-hidden="true" /> : null}
                         </motion.button>
                       )
@@ -185,7 +212,7 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
             <motion.section className="total-card">
               <div>
                 <span>Итого</span>
-                <small>для проекта {formatArea(area)} м²</small>
+                <small>{formatCalculationMode(calculationMode)} · {formatArea(area)} м²</small>
               </div>
               <div className="total-right">
                 <AnimatedNumber value={total} />

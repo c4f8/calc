@@ -3,17 +3,18 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useMemo, useState, useTransition } from 'react'
 import { EstimateCard } from '@/components/calculator/EstimateCard'
-import { calculateEstimateLines, calculateTotal } from '@/lib/calc'
+import { calculateEstimateLines, calculateTotal, isGoodAvailableInMode } from '@/lib/calc'
 import type { EstimateSnapshot, GoodView, SettingsView } from '@/types/domain'
 
 export function SettingsManager({ initialSettings, goods }: { initialSettings: SettingsView; goods: GoodView[] }) {
   const [settings, setSettings] = useState(initialSettings)
-  const [sampleIds, setSampleIds] = useState(() => new Set(goods.filter((good) => good.required || good.selectedByDefault).map((good) => good.id)))
+  const [sampleIds, setSampleIds] = useState(() => new Set(goods.filter((good) => isGoodAvailableInMode(good, 'express') && (good.required || good.selectedByDefault)).map((good) => good.id)))
   const [status, setStatus] = useState('')
   const [isPending, startTransition] = useTransition()
 
-  const sampleLines = useMemo(() => calculateEstimateLines(goods, sampleIds, settings.defaultArea), [goods, sampleIds, settings.defaultArea])
+  const sampleLines = useMemo(() => calculateEstimateLines(goods, sampleIds, settings.defaultArea, 'express'), [goods, sampleIds, settings.defaultArea])
   const snapshot: EstimateSnapshot = useMemo(() => ({
+    calculationMode: 'express',
     area: settings.defaultArea,
     total: calculateTotal(sampleLines),
     lines: sampleLines,
@@ -84,7 +85,7 @@ export function SettingsManager({ initialSettings, goods }: { initialSettings: S
           <div className="sample-goods">
             <p className="eyebrow">Пример состава</p>
             <div>
-              {goods.map((good) => (
+              {goods.filter((good) => isGoodAvailableInMode(good, 'express')).map((good) => (
                 <button
                   key={good.id}
                   type="button"

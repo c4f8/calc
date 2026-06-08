@@ -12,10 +12,34 @@ export const goodInputSchema = z.object({
   pricingMode: pricingModeSchema,
   pricePerSqm: z.coerce.number().int().min(0).nullable().optional(),
   fixedPrice: z.coerce.number().int().min(0).nullable().optional(),
+  individualPricePerSqm: z.coerce.number().int().min(0).nullable().optional(),
+  individualFixedPrice: z.coerce.number().int().min(0).nullable().optional(),
+  availableInExpress: z.boolean(),
+  availableInIndividual: z.boolean(),
   enabled: z.boolean(),
   required: z.boolean(),
   selectedByDefault: z.boolean(),
   order: z.coerce.number().int().min(0),
+}).superRefine((value, ctx) => {
+  if (!value.availableInExpress && !value.availableInIndividual) {
+    ctx.addIssue({ code: 'custom', path: ['availableInExpress'], message: 'Выберите хотя бы одну группу' })
+  }
+
+  if (value.availableInExpress && value.pricingMode === 'area' && value.pricePerSqm == null) {
+    ctx.addIssue({ code: 'custom', path: ['pricePerSqm'], message: 'Укажите цену Экспресс' })
+  }
+
+  if (value.availableInExpress && value.pricingMode === 'fixed' && value.fixedPrice == null) {
+    ctx.addIssue({ code: 'custom', path: ['fixedPrice'], message: 'Укажите цену Экспресс' })
+  }
+
+  if (value.availableInIndividual && value.pricingMode === 'area' && value.individualPricePerSqm == null) {
+    ctx.addIssue({ code: 'custom', path: ['individualPricePerSqm'], message: 'Укажите индивидуальную цену' })
+  }
+
+  if (value.availableInIndividual && value.pricingMode === 'fixed' && value.individualFixedPrice == null) {
+    ctx.addIssue({ code: 'custom', path: ['individualFixedPrice'], message: 'Укажите индивидуальную цену' })
+  }
 })
 
 export const catalogPayloadSchema = z.object({

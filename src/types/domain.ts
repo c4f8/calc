@@ -1,4 +1,5 @@
 export type PricingMode = 'area' | 'fixed'
+export type CalculationMode = 'express' | 'individual'
 
 export type GoodIcon =
   | 'plan'
@@ -20,6 +21,10 @@ export interface GoodView {
   pricingMode: PricingMode
   pricePerSqm: number | null
   fixedPrice: number | null
+  individualPricePerSqm: number | null
+  individualFixedPrice: number | null
+  availableInExpress: boolean
+  availableInIndividual: boolean
   enabled: boolean
   required: boolean
   selectedByDefault: boolean
@@ -43,6 +48,7 @@ export interface EstimateLine {
   name: string
   icon: GoodIcon
   color: string
+  calculationMode: CalculationMode
   pricingMode: PricingMode
   priceRule: string
   amount: number
@@ -50,6 +56,7 @@ export interface EstimateLine {
 }
 
 export interface EstimateSnapshot {
+  calculationMode: CalculationMode
   area: number
   total: number
   lines: EstimateLine[]

@@ -1,4 +1,4 @@
-import type { EstimateLine, GoodView, SettingsView } from '@/types/domain'
+import type { CalculationMode, EstimateLine, GoodView, SettingsView } from '@/types/domain'
 
 const rubleFormatter = new Intl.NumberFormat('ru-RU', {
   maximumFractionDigits: 0,
@@ -16,34 +16,55 @@ export function formatArea(value: number): string {
   return areaFormatter.format(value)
 }
 
-export function formatPriceRule(good: Pick<GoodView, 'pricingMode' | 'pricePerSqm' | 'fixedPrice'>): string {
-  if (good.pricingMode === 'fixed') {
-    return `${formatRubles(good.fixedPrice ?? 0)} фикс.`
-  }
-
-  return `${formatRubles(good.pricePerSqm ?? 0)}/м²`
+export function formatCalculationMode(mode: CalculationMode): string {
+  return mode === 'express' ? 'Экспресс' : 'Индивидуальный расчёт'
 }
 
-export function calculateGoodAmount(good: GoodView, area: number): number {
-  if (good.pricingMode === 'fixed') {
-    return good.fixedPrice ?? 0
-  }
-
-  return area * (good.pricePerSqm ?? 0)
+export function isGoodAvailableInMode(good: Pick<GoodView, 'availableInExpress' | 'availableInIndividual'>, mode: CalculationMode): boolean {
+  return mode === 'express' ? good.availableInExpress : good.availableInIndividual
 }
 
-export function calculateEstimateLines(goods: GoodView[], selectedIds: Set<string>, area: number): EstimateLine[] {
+function getModePrice(good: Pick<GoodView, 'pricingMode' | 'pricePerSqm' | 'fixedPrice' | 'individualPricePerSqm' | 'individualFixedPrice'>, mode: CalculationMode): number {
+  if (good.pricingMode === 'fixed') {
+    return mode === 'express' ? good.fixedPrice ?? 0 : good.individualFixedPrice ?? 0
+  }
+
+  return mode === 'express' ? good.pricePerSqm ?? 0 : good.individualPricePerSqm ?? 0
+}
+
+export function formatPriceRule(good: Pick<GoodView, 'pricingMode' | 'pricePerSqm' | 'fixedPrice' | 'individualPricePerSqm' | 'individualFixedPrice'>, mode: CalculationMode = 'express'): string {
+  if (good.pricingMode === 'fixed') {
+    return `${formatRubles(getModePrice(good, mode))} фикс.`
+  }
+
+  return `${formatRubles(getModePrice(good, mode))}/м²`
+}
+
+export function hasDifferentModePrices(good: GoodView): boolean {
+  return good.availableInExpress && good.availableInIndividual && getModePrice(good, 'express') !== getModePrice(good, 'individual')
+}
+
+export function calculateGoodAmount(good: GoodView, area: number, mode: CalculationMode): number {
+  if (good.pricingMode === 'fixed') {
+    return getModePrice(good, mode)
+  }
+
+  return area * getModePrice(good, mode)
+}
+
+export function calculateEstimateLines(goods: GoodView[], selectedIds: Set<string>, area: number, mode: CalculationMode): EstimateLine[] {
   return goods
-    .filter((good) => good.enabled && (good.required || selectedIds.has(good.id)))
+    .filter((good) => good.enabled && isGoodAvailableInMode(good, mode) && (good.required || selectedIds.has(good.id)))
     .sort((a, b) => a.order - b.order)
     .map((good) => ({
       goodId: good.id,
       name: good.name,
       icon: good.icon,
       color: good.color,
+      calculationMode: mode,
       pricingMode: good.pricingMode,
-      priceRule: formatPriceRule(good),
-      amount: calculateGoodAmount(good, area),
+      priceRule: formatPriceRule(good, mode),
+      amount: calculateGoodAmount(good, area, mode),
       required: good.required,
     }))
 }
@@ -57,7 +78,7 @@ export function clampArea(value: number, settings: Pick<SettingsView, 'minArea' 
   return Math.min(settings.maxArea, Math.max(settings.minArea, value))
 }
 
-export function makeEstimateMessage(area: number, lines: EstimateLine[], total: number, settings: SettingsView): string {
+export function makeEstimateMessage(area: number, lines: EstimateLine[], total: number, settings: SettingsView, mode: CalculationMode): string {
   const goods = lines.length > 0
     ? lines.map((line) => `- ${line.name}: ${line.priceRule} = ${formatRubles(line.amount)}`).join('\n')
     : '- Нет выбранных позиций'
@@ -65,6 +86,7 @@ export function makeEstimateMessage(area: number, lines: EstimateLine[], total: 
 
   return [
     'Предварительный расчёт ARCHIPELAG',
+    `Тип расчёта: ${formatCalculationMode(mode)}`,
     `Площадь: ${formatArea(area)} м²`,
     `Итого: ${formatRubles(total)}`,
     '',

@@ -36,6 +36,10 @@ function makeNewGood(order: number): GoodView {
     pricingMode: 'area',
     pricePerSqm: 0,
     fixedPrice: null,
+    individualPricePerSqm: 0,
+    individualFixedPrice: null,
+    availableInExpress: true,
+    availableInIndividual: true,
     enabled: true,
     required: false,
     selectedByDefault: false,
@@ -63,6 +67,29 @@ function SortableGoodRow({
   function patch(update: Partial<GoodView>) {
     onChange({ ...good, ...update })
   }
+
+  function toggleGroup(group: 'express' | 'individual') {
+    if (group === 'express') {
+      if (good.availableInExpress && !good.availableInIndividual) return
+      patch({ availableInExpress: !good.availableInExpress })
+      return
+    }
+
+    if (good.availableInIndividual && !good.availableInExpress) return
+    patch({ availableInIndividual: !good.availableInIndividual })
+  }
+
+  function patchPrice(group: 'express' | 'individual', value: number) {
+    if (group === 'express') {
+      patch(good.pricingMode === 'area' ? { pricePerSqm: value } : { fixedPrice: value })
+      return
+    }
+
+    patch(good.pricingMode === 'area' ? { individualPricePerSqm: value } : { individualFixedPrice: value })
+  }
+
+  const expressPrice = good.pricingMode === 'area' ? good.pricePerSqm ?? 0 : good.fixedPrice ?? 0
+  const individualPrice = good.pricingMode === 'area' ? good.individualPricePerSqm ?? 0 : good.individualFixedPrice ?? 0
 
   return (
     <motion.article
@@ -93,6 +120,27 @@ function SortableGoodRow({
           <input value={good.description ?? ''} onChange={(event) => patch({ description: event.target.value })} />
         </label>
       </div>
+      <div className="admin-field-group catalog-group-fields">
+        <span className="field-group-label">Группы</span>
+        <div className="mode-picker" aria-label="Группы расчёта">
+          <button
+            type="button"
+            className={good.availableInExpress ? 'selected' : ''}
+            aria-pressed={good.availableInExpress}
+            onClick={() => toggleGroup('express')}
+          >
+            Экспресс
+          </button>
+          <button
+            type="button"
+            className={good.availableInIndividual ? 'selected' : ''}
+            aria-pressed={good.availableInIndividual}
+            onClick={() => toggleGroup('individual')}
+          >
+            Индивидуальный
+          </button>
+        </div>
+      </div>
       <div className="catalog-price-fields">
         <label>
           Режим
@@ -102,15 +150,23 @@ function SortableGoodRow({
           </select>
         </label>
         <label>
-          Цена
+          Экспресс
           <input
             type="number"
             min="0"
-            value={good.pricingMode === 'area' ? good.pricePerSqm ?? 0 : good.fixedPrice ?? 0}
-            onChange={(event) => {
-              const value = Math.max(0, Number(event.target.value))
-              patch(good.pricingMode === 'area' ? { pricePerSqm: value } : { fixedPrice: value })
-            }}
+            value={expressPrice}
+            disabled={!good.availableInExpress}
+            onChange={(event) => patchPrice('express', Math.max(0, Number(event.target.value)))}
+          />
+        </label>
+        <label>
+          Индивидуальный
+          <input
+            type="number"
+            min="0"
+            value={individualPrice}
+            disabled={!good.availableInIndividual}
+            onChange={(event) => patchPrice('individual', Math.max(0, Number(event.target.value)))}
           />
         </label>
       </div>

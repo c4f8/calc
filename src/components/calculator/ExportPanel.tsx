@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { toPng } from 'html-to-image'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { EstimateCard } from '@/components/calculator/EstimateCard'
-import { makeEstimateMessage, makePngFilename } from '@/lib/calc'
+import { formatCalculationMode, makeEstimateMessage, makePngFilename } from '@/lib/calc'
 import type { EstimateSnapshot } from '@/types/domain'
 
 type StepState = 'idle' | 'done'
@@ -35,7 +35,7 @@ export function ExportPanel({ snapshot, onClose }: { snapshot: EstimateSnapshot 
 
   const estimateMessage = useMemo(() => {
     if (!snapshot) return ''
-    return makeEstimateMessage(snapshot.area, snapshot.lines, snapshot.total, snapshot.settings)
+    return makeEstimateMessage(snapshot.area, snapshot.lines, snapshot.total, snapshot.settings, snapshot.calculationMode)
   }, [snapshot])
 
   useEffect(() => {
@@ -174,7 +174,7 @@ export function ExportPanel({ snapshot, onClose }: { snapshot: EstimateSnapshot 
             <div className="export-heading">
               <p className="eyebrow">Экспорт</p>
               <h2>Готово к отправке</h2>
-              <p>Карточка и текст расчёта созданы из текущего снимка.</p>
+              <p>{formatCalculationMode(snapshot.calculationMode)} · карточка и текст созданы из текущего снимка.</p>
             </div>
 
             <div className="card-preview-shell">

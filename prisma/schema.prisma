@@ -83,21 +83,25 @@ model AdminRateLimit {
 }
 
 model Good {
-  id                String    @id @default(cuid())
-  name              String
-  description       String?
-  icon              String
-  color             String
-  pricingMode       String
-  pricePerSqm       Int?
-  fixedPrice        Int?
-  enabled           Boolean   @default(true)
-  required          Boolean   @default(false)
-  selectedByDefault Boolean   @default(false)
-  order             Int
-  archivedAt        DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id                    String    @id @default(cuid())
+  name                  String
+  description           String?
+  icon                  String
+  color                 String
+  pricingMode           String
+  pricePerSqm           Int?
+  fixedPrice            Int?
+  individualPricePerSqm Int?
+  individualFixedPrice  Int?
+  availableInExpress    Boolean   @default(true)
+  availableInIndividual Boolean   @default(true)
+  enabled               Boolean   @default(true)
+  required              Boolean   @default(false)
+  selectedByDefault     Boolean   @default(false)
+  order                 Int
+  archivedAt            DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@index([archivedAt, order])
 }
