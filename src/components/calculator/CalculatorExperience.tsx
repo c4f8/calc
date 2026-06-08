@@ -108,7 +108,7 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
           <div className="calculator-flow">
             <section className="area-section">
               <label htmlFor="area">Площадь помещения</label>
-              <label className="area-input-card" htmlFor="area" aria-label="Площадь помещения">
+              <label className="area-input-card" htmlFor="area">
                 <input
                   id="area"
                   inputMode="decimal"
