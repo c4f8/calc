@@ -219,6 +219,13 @@ a {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.34);
   padding: 0 18px;
+  cursor: text;
+  transition: border-color .22s var(--ease), background .22s var(--ease);
+}
+
+.area-input-card:focus-within {
+  border-color: var(--ink);
+  background: rgba(251, 250, 247, .56);
 }
 
 .area-input-card input {
@@ -329,6 +336,7 @@ h2 {
 }
 
 .mode-segment {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 4px;
@@ -339,7 +347,25 @@ h2 {
   padding: 4px;
 }
 
+.mode-segment::before {
+  content: '';
+  position: absolute;
+  inset: 4px auto 4px 4px;
+  width: calc((100% - 12px) / 2);
+  border-radius: 6px;
+  background: var(--ink);
+  transform: translateX(0);
+  transition: transform .34s cubic-bezier(.16, 1, .3, 1), border-radius .34s cubic-bezier(.16, 1, .3, 1);
+  z-index: 0;
+}
+
+.mode-segment[data-mode='individual']::before {
+  transform: translateX(calc(100% + 4px));
+}
+
 .mode-segment button {
+  position: relative;
+  z-index: 1;
   min-height: 32px;
   border: 0;
   border-radius: 6px;
@@ -353,7 +379,7 @@ h2 {
 }
 
 .mode-segment button.active {
-  background: var(--ink);
+  background: transparent;
   color: var(--card);
 }
 
@@ -1130,9 +1156,9 @@ h2 {
 
 .panel-card {
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 8px;
   background: rgba(251,250,247,.72);
-  box-shadow: 0 18px 60px rgba(23,23,23,.08);
+  box-shadow: 0 14px 44px rgba(23,23,23,.07);
 }
 
 .login-card {
@@ -1199,8 +1225,8 @@ select:disabled {
 .admin-page {
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: 260px 1fr;
-  background: linear-gradient(135deg, #ede8df, #f8f5ef);
+  grid-template-columns: 232px minmax(0, 1fr);
+  background: linear-gradient(135deg, oklch(91% 0.006 88), oklch(97% 0.005 92));
 }
 
 .admin-sidebar {
@@ -1211,7 +1237,7 @@ select:disabled {
   grid-template-rows: auto 1fr auto;
   gap: 28px;
   border-right: 1px solid var(--line);
-  padding: 28px;
+  padding: 26px 22px;
   background: rgba(251,250,247,.58);
 }
 
@@ -1220,8 +1246,8 @@ select:disabled {
 }
 
 .admin-sidebar h1 {
-  font-size: 34px;
-  letter-spacing: .18em;
+  font-size: 26px;
+  letter-spacing: .14em;
 }
 
 .admin-nav {
@@ -1232,9 +1258,10 @@ select:disabled {
 
 .admin-nav-link {
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 12px 14px;
   color: var(--ink-soft);
+  font-size: 13px;
 }
 
 .admin-nav-link.active,
@@ -1264,12 +1291,13 @@ select:disabled {
 
 .admin-content {
   min-width: 0;
-  padding: 34px;
+  padding: 30px;
 }
 
 .admin-stack {
   display: grid;
   gap: 22px;
+  max-width: 1500px;
 }
 
 .admin-header-row {
@@ -1284,6 +1312,7 @@ select:disabled {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .catalog-list {
@@ -1293,17 +1322,22 @@ select:disabled {
 
 .catalog-row {
   display: grid;
-  grid-template-columns: 96px minmax(210px, 1.1fr) minmax(152px, .65fr) minmax(238px, .95fr) minmax(170px, .78fr) minmax(154px, .68fr) minmax(154px, .7fr) auto;
-  gap: 16px;
+  grid-template-columns: 72px minmax(260px, 1.45fr) minmax(280px, 1fr) minmax(168px, .68fr) minmax(170px, .68fr);
+  grid-template-areas:
+    "meta main price icon actions"
+    "meta group price color actions";
+  gap: 16px 18px;
   align-items: start;
   padding: 18px;
 }
 
 .catalog-row-meta {
+  grid-area: meta;
   display: grid;
   grid-template-columns: 28px 1fr;
   gap: 8px 10px;
   align-items: center;
+  align-content: start;
 }
 
 .drag-handle {
@@ -1337,6 +1371,14 @@ select:disabled {
   font-size: 10px;
 }
 
+.catalog-main-fields {
+  grid-area: main;
+}
+
+.catalog-group-fields {
+  grid-area: group;
+}
+
 .visibility-pill.visible {
   border-color: rgba(23, 23, 23, .24);
   color: var(--ink);
@@ -1351,24 +1393,39 @@ select:disabled {
 }
 
 .catalog-price-fields {
-  grid-template-columns: 82px repeat(2, minmax(96px, 1fr));
+  grid-area: price;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+}
+
+.catalog-price-fields label:first-child {
+  grid-column: 1 / -1;
+}
+
+.catalog-icon-fields {
+  grid-area: icon;
+}
+
+.catalog-color-fields {
+  grid-area: color;
 }
 
 .mode-picker {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
 }
 
 .mode-picker button {
-  min-height: 32px;
+  min-height: 34px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(255,255,255,.42);
   color: var(--ink-soft);
   padding: 0 10px;
   font-size: 11px;
-  text-align: left;
+  line-height: 1.15;
+  text-align: center;
   cursor: pointer;
   transition: background .22s var(--ease), color .22s var(--ease), border-color .22s var(--ease);
 }
@@ -1427,9 +1484,22 @@ select:disabled {
 
 .catalog-switches {
   display: grid;
-  gap: 10px;
+  gap: 11px;
   font-size: 12px;
   color: var(--ink-soft);
+}
+
+.catalog-row-actions {
+  grid-area: actions;
+  display: grid;
+  align-content: start;
+  gap: 16px;
+}
+
+.catalog-row-actions .archive-button {
+  width: fit-content;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .switch-control {
@@ -1484,9 +1554,10 @@ select:disabled {
 
 .settings-grid {
   display: grid;
-  grid-template-columns: minmax(420px, 1fr) 430px;
+  grid-template-columns: minmax(420px, 1fr) 390px;
   gap: 26px;
   align-items: start;
+  max-width: 1280px;
 }
 
 .settings-stack {
@@ -1877,11 +1948,16 @@ select:disabled {
   }
 
   .catalog-row {
-    grid-template-columns: 94px minmax(260px, 1.2fr) minmax(170px, .8fr);
+    grid-template-columns: 72px minmax(0, 1fr) minmax(280px, .9fr);
+    grid-template-areas:
+      "meta main price"
+      "meta group price"
+      "icon color actions";
   }
 
   .catalog-price-fields {
-    grid-column: 1 / -1;
+    grid-area: price;
+    grid-column: auto;
     grid-template-columns: 96px repeat(2, minmax(140px, 1fr));
   }
 
@@ -1891,7 +1967,6 @@ select:disabled {
   }
 
   .archive-button {
-    grid-column: 3;
     justify-self: start;
   }
 }
@@ -1913,6 +1988,14 @@ select:disabled {
 
   .catalog-row {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "meta"
+      "main"
+      "group"
+      "price"
+      "icon"
+      "color"
+      "actions";
   }
 
   .catalog-row-meta {
@@ -1927,6 +2010,11 @@ select:disabled {
   .catalog-price-fields {
     grid-column: auto;
     grid-template-columns: minmax(110px, .6fr) repeat(2, minmax(120px, 1fr));
+  }
+
+  .catalog-row-actions {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
   }
 
   .archive-button {

@@ -17,7 +17,7 @@ export function formatArea(value: number): string {
 }
 
 export function formatCalculationMode(mode: CalculationMode): string {
-  return mode === 'express' ? 'Экспресс' : 'Индивидуальный расчёт'
+  return mode === 'express' ? 'Экспресс дизайн' : 'Индивидуальный дизайн'
 }
 
 export function isGoodAvailableInMode(good: Pick<GoodView, 'availableInExpress' | 'availableInIndividual'>, mode: CalculationMode): boolean {

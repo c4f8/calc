@@ -129,7 +129,7 @@ function SortableGoodRow({
             aria-pressed={good.availableInExpress}
             onClick={() => toggleGroup('express')}
           >
-            Экспресс
+            Экспресс дизайн
           </button>
           <button
             type="button"
@@ -137,7 +137,7 @@ function SortableGoodRow({
             aria-pressed={good.availableInIndividual}
             onClick={() => toggleGroup('individual')}
           >
-            Индивидуальный
+            Индивидуальный дизайн
           </button>
         </div>
       </div>
@@ -150,7 +150,7 @@ function SortableGoodRow({
           </select>
         </label>
         <label>
-          Экспресс
+          Экспресс дизайн
           <input
             type="number"
             min="0"
@@ -160,7 +160,7 @@ function SortableGoodRow({
           />
         </label>
         <label>
-          Индивидуальный
+          Индивидуальный дизайн
           <input
             type="number"
             min="0"
@@ -170,7 +170,7 @@ function SortableGoodRow({
           />
         </label>
       </div>
-      <div className="admin-field-group">
+      <div className="admin-field-group catalog-icon-fields">
         <span className="field-group-label">Иконка</span>
         <div className="icon-picker" aria-label="Иконка">
           {iconOptions.map((icon) => (
@@ -186,7 +186,7 @@ function SortableGoodRow({
           ))}
         </div>
       </div>
-      <div className="admin-field-group">
+      <div className="admin-field-group catalog-color-fields">
         <span className="field-group-label">Акцент</span>
         <div className="color-picker" aria-label="Цвет">
           {colorOptions.map((color) => (
@@ -201,24 +201,26 @@ function SortableGoodRow({
           ))}
         </div>
       </div>
-      <div className="catalog-switches">
-        <label className="switch-control">
-          <input type="checkbox" checked={good.enabled} onChange={(event) => patch({ enabled: event.target.checked })} />
-          <span className="switch-track" />
-          <span>Включён</span>
-        </label>
-        <label className="switch-control">
-          <input type="checkbox" checked={good.required} onChange={(event) => patch({ required: event.target.checked, selectedByDefault: event.target.checked ? true : good.selectedByDefault })} />
-          <span className="switch-track" />
-          <span>Обязательный</span>
-        </label>
-        <label className="switch-control">
-          <input type="checkbox" checked={good.selectedByDefault} disabled={good.required} onChange={(event) => patch({ selectedByDefault: event.target.checked })} />
-          <span className="switch-track" />
-          <span>По умолчанию</span>
-        </label>
+      <div className="catalog-row-actions">
+        <div className="catalog-switches">
+          <label className="switch-control">
+            <input type="checkbox" checked={good.enabled} onChange={(event) => patch({ enabled: event.target.checked })} />
+            <span className="switch-track" />
+            <span>Включён</span>
+          </label>
+          <label className="switch-control">
+            <input type="checkbox" checked={good.required} onChange={(event) => patch({ required: event.target.checked, selectedByDefault: event.target.checked ? true : good.selectedByDefault })} />
+            <span className="switch-track" />
+            <span>Обязательный</span>
+          </label>
+          <label className="switch-control">
+            <input type="checkbox" checked={good.selectedByDefault} disabled={good.required} onChange={(event) => patch({ selectedByDefault: event.target.checked })} />
+            <span className="switch-track" />
+            <span>По умолчанию</span>
+          </label>
+        </div>
+        <button className="archive-button" type="button" onClick={() => onArchive(good.id)}>Архив</button>
       </div>
-      <button className="archive-button" type="button" onClick={() => onArchive(good.id)}>Архив</button>
     </motion.article>
   )
 }

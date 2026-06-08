@@ -108,7 +108,7 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
           <div className="calculator-flow">
             <section className="area-section">
               <label htmlFor="area">Площадь помещения</label>
-              <div className="area-input-card">
+              <label className="area-input-card" htmlFor="area" aria-label="Площадь помещения">
                 <input
                   id="area"
                   inputMode="decimal"
@@ -120,9 +120,9 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
                   }}
                   aria-describedby="area-hint"
                 />
-                <span className="area-unit">м²</span>
+                <span className="area-unit" aria-hidden="true">м²</span>
                 <span className="area-corners" aria-hidden="true" />
-              </div>
+              </label>
               <AnimatePresence>
                 {hint ? (
                   <motion.p
@@ -146,7 +146,7 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
                 </button>
               </div>
 
-              <div className="mode-segment" role="tablist" aria-label="Тип расчёта">
+              <div className="mode-segment" role="tablist" aria-label="Тип расчёта" data-mode={calculationMode}>
                 {calculationModes.map((mode) => (
                   <button
                     key={mode}

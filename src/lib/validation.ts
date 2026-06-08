@@ -26,19 +26,19 @@ export const goodInputSchema = z.object({
   }
 
   if (value.availableInExpress && value.pricingMode === 'area' && value.pricePerSqm == null) {
-    ctx.addIssue({ code: 'custom', path: ['pricePerSqm'], message: 'Укажите цену Экспресс' })
+    ctx.addIssue({ code: 'custom', path: ['pricePerSqm'], message: 'Укажите цену: Экспресс дизайн' })
   }
 
   if (value.availableInExpress && value.pricingMode === 'fixed' && value.fixedPrice == null) {
-    ctx.addIssue({ code: 'custom', path: ['fixedPrice'], message: 'Укажите цену Экспресс' })
+    ctx.addIssue({ code: 'custom', path: ['fixedPrice'], message: 'Укажите цену: Экспресс дизайн' })
   }
 
   if (value.availableInIndividual && value.pricingMode === 'area' && value.individualPricePerSqm == null) {
-    ctx.addIssue({ code: 'custom', path: ['individualPricePerSqm'], message: 'Укажите индивидуальную цену' })
+    ctx.addIssue({ code: 'custom', path: ['individualPricePerSqm'], message: 'Укажите цену: Индивидуальный дизайн' })
   }
 
   if (value.availableInIndividual && value.pricingMode === 'fixed' && value.individualFixedPrice == null) {
-    ctx.addIssue({ code: 'custom', path: ['individualFixedPrice'], message: 'Укажите индивидуальную цену' })
+    ctx.addIssue({ code: 'custom', path: ['individualFixedPrice'], message: 'Укажите цену: Индивидуальный дизайн' })
   }
 })
 
