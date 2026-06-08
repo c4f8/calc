@@ -209,21 +209,23 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
               </motion.div>
             </section>
 
-            <motion.section className="total-card">
-              <div>
-                <span>Итого</span>
-                <small>{formatCalculationMode(calculationMode)} · {formatArea(area)} м²</small>
-              </div>
-              <div className="total-right">
-                <AnimatedNumber value={total} />
-                {settings.taxLabel ? <small>{settings.taxLabel}</small> : null}
-              </div>
-            </motion.section>
+            <div className="summary-stack">
+              <motion.section className="total-card">
+                <div>
+                  <span>Итого</span>
+                  <small>{formatCalculationMode(calculationMode)} · {formatArea(area)} м²</small>
+                </div>
+                <div className="total-right">
+                  <AnimatedNumber value={total} />
+                  {settings.taxLabel ? <small>{settings.taxLabel}</small> : null}
+                </div>
+              </motion.section>
 
-            <button className="button button-dark share-main" type="button" onClick={openExport}>
-              <span>Поделиться расчётом</span>
-              <span className="button-arrow" aria-hidden="true" />
-            </button>
+              <button className="button button-dark share-main" type="button" onClick={openExport}>
+                <span>Поделиться расчётом</span>
+                <span className="button-arrow" aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </div>
       </section>
