@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { ExportPanel } from '@/components/calculator/ExportPanel'
 import { AnimatedNumber } from '@/components/shared/AnimatedNumber'
-import { calculateEstimateLines, calculateTotal, clampArea, formatArea, formatCalculationMode, formatPriceRule, hasDifferentModePrices, isGoodAvailableInMode } from '@/lib/calc'
+import { calculateEstimateLines, calculateTotal, clampArea, formatArea, formatCalculationMode, isGoodAvailableInMode } from '@/lib/calc'
 import { GoodGlyph } from '@/lib/icons'
 import type { CalculationMode, EstimateSnapshot, GoodView, SettingsView } from '@/types/domain'
 
@@ -14,7 +14,7 @@ function makeInitialSelectedIds(goods: GoodView[]): Set<string> {
 }
 
 const calculationModes: CalculationMode[] = ['express', 'individual']
-const liquidEase: [number, number, number, number] = [0.16, 1, 0.3, 1]
+const liquidEase: [number, number, number, number] = [0.22, 1, 0.36, 1]
 type ModeDirection = -1 | 0 | 1
 
 type GoodRowMotionState = {
@@ -25,10 +25,10 @@ type GoodRowMotionState = {
 const goodsRowVariants = {
   initial: ({ modeDirection }: GoodRowMotionState) => ({
     opacity: 0,
-    x: modeDirection * 10,
-    y: modeDirection === 0 ? -8 : 0,
-    scale: 0.992,
-    filter: 'blur(5px)',
+    x: modeDirection * 4,
+    y: modeDirection === 0 ? -4 : 0,
+    scale: 0.996,
+    filter: 'blur(2px)',
   }),
   animate: ({ selected }: GoodRowMotionState) => ({
     opacity: selected ? 1 : 0.58,
@@ -39,20 +39,20 @@ const goodsRowVariants = {
   }),
   exit: ({ modeDirection }: GoodRowMotionState) => ({
     opacity: 0,
-    x: modeDirection * -10,
-    y: modeDirection === 0 ? -8 : 0,
-    scale: 0.992,
-    filter: 'blur(5px)',
+    x: modeDirection * -4,
+    y: modeDirection === 0 ? -4 : 0,
+    scale: 0.996,
+    filter: 'blur(2px)',
   }),
 }
 
 function getGoodsRowTransition(index: number, isEditingGoods: boolean, modeDirection: ModeDirection, shouldReduceMotion: boolean) {
   if (shouldReduceMotion) return { duration: 0 }
   return {
-    duration: modeDirection === 0 ? 0.32 : 0.26,
+    duration: modeDirection === 0 ? 0.46 : 0.4,
     ease: liquidEase,
-    delay: modeDirection === 0 && isEditingGoods ? Math.min(index, 4) * 0.024 : 0,
-    layout: { duration: 0.36, ease: liquidEase },
+    delay: modeDirection === 0 && isEditingGoods ? Math.min(index, 4) * 0.038 : 0,
+    layout: { duration: 0.52, ease: liquidEase },
   }
 }
 
@@ -68,10 +68,10 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
   const [modeDirection, setModeDirection] = useState<ModeDirection>(0)
   const shouldReduceMotion = useReducedMotion() ?? false
 
-  const liquidTransition = shouldReduceMotion ? { duration: 0 } : { duration: 0.38, ease: liquidEase }
-  const selectorTransition = shouldReduceMotion ? { duration: 0 } : { duration: 0.5, ease: liquidEase }
-  const stackTransition = shouldReduceMotion ? { duration: 0 } : { duration: 0.32, ease: liquidEase }
-  const presenceTransition = shouldReduceMotion ? { duration: 0 } : { duration: 0.22, ease: liquidEase }
+  const liquidTransition = shouldReduceMotion ? { duration: 0 } : { duration: 0.52, ease: liquidEase }
+  const selectorTransition = shouldReduceMotion ? { duration: 0 } : { duration: 0.68, ease: liquidEase }
+  const stackTransition = shouldReduceMotion ? { duration: 0 } : { duration: 0.42, ease: liquidEase }
+  const presenceTransition = shouldReduceMotion ? { duration: 0 } : { duration: 0.34, ease: liquidEase }
 
   const visibleGoods = useMemo(
     () => goods.filter((good) => good.enabled && isGoodAvailableInMode(good, calculationMode)).sort((a, b) => a.order - b.order),
@@ -235,7 +235,7 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
                           className="mode-segment-thumb"
                           layoutId="mode-segment-thumb"
                           initial={false}
-                          animate={modeDirection === 0 ? { scaleX: 1 } : { scaleX: [1, 1.075, 1] }}
+                          animate={modeDirection === 0 ? { scaleX: 1 } : { scaleX: [1, 1.025, 1] }}
                           transition={selectorTransition}
                           aria-hidden="true"
                         />
@@ -246,7 +246,7 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
                 </motion.div>
 
                 <motion.div className={`goods-list ${isEditingGoods ? 'editing' : 'compact'}`} layout transition={liquidTransition}>
-                  <AnimatePresence initial={false} mode="popLayout">
+                  <AnimatePresence initial={false} mode="sync">
                     {displayedGoods.length > 0 ? (
                       displayedGoods.map((good, index) => {
                         const selected = good.required || selectedIds.has(good.id)
@@ -278,22 +278,13 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
                               </span>
                               {good.description ? <small>{good.description}</small> : null}
                             </motion.span>
-                            <AnimatePresence mode="popLayout" initial={false}>
-                              <motion.span
-                                key={`${good.id}-${calculationMode}`}
-                                className="good-price-stack"
-                                layout="position"
-                                initial={{ opacity: 0, y: 4, filter: 'blur(3px)' }}
-                                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                                exit={{ opacity: 0, y: -4, filter: 'blur(3px)' }}
-                                transition={presenceTransition}
-                              >
-                                <span className="good-price">{formatPriceRule(good, calculationMode)}</span>
-                                {hasDifferentModePrices(good) ? (
-                                  <small>{formatPriceRule(good, calculationMode === 'express' ? 'individual' : 'express')}</small>
-                                ) : null}
-                              </motion.span>
-                            </AnimatePresence>
+                            <motion.span
+                              className={`good-status ${selected ? 'included' : 'available'}`}
+                              layout="position"
+                              transition={liquidTransition}
+                            >
+                              {selected ? 'Включено' : 'Добавить'}
+                            </motion.span>
                             <AnimatePresence initial={false}>
                               {isEditingGoods && !good.required ? (
                                 <motion.span
