@@ -274,7 +274,6 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
                             <motion.span className="good-copy" layout="position" transition={liquidTransition}>
                               <span className="good-title-line">
                                 <strong>{good.name}</strong>
-                                {good.required ? <em>в составе</em> : null}
                               </span>
                               {good.description ? <small>{good.description}</small> : null}
                             </motion.span>

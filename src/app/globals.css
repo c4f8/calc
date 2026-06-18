@@ -547,16 +547,6 @@ h2 {
   font-weight: 600;
 }
 
-.good-title-line em {
-  border: 1px solid rgba(23,23,23,.16);
-  border-radius: 999px;
-  padding: 2px 7px;
-  font-size: 9px;
-  font-style: normal;
-  color: var(--ink-soft);
-  background: rgba(255,255,255,.45);
-}
-
 .good-copy small {
   color: var(--muted);
   font-size: 10px;
