@@ -635,6 +635,10 @@ h2 {
   transform-origin: 50% 0;
 }
 
+.total-card > div:first-child {
+  min-width: 0;
+}
+
 .total-card > div:first-child > span {
   display: block;
   font-size: 15px;
@@ -648,6 +652,7 @@ h2 {
 
 .total-meta {
   display: block;
+  line-height: 1.35;
 }
 
 .total-right {
@@ -1067,6 +1072,15 @@ h2 {
   letter-spacing: .22em;
   font-size: 18px;
   color: #34312d;
+}
+
+.estimate-mode-scope {
+  margin: -6px 0 28px;
+  text-transform: uppercase;
+  letter-spacing: .13em;
+  font-size: 20px;
+  line-height: 1.28;
+  color: #171717;
 }
 
 .estimate-area {

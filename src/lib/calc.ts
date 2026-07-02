@@ -20,6 +20,12 @@ export function formatCalculationMode(mode: CalculationMode): string {
   return mode === 'express' ? 'Экспресс дизайн' : 'Индивидуальный дизайн'
 }
 
+export function formatCalculationModeScope(mode: CalculationMode): string {
+  return mode === 'express'
+    ? `${formatCalculationMode(mode)} · проект · реализация`
+    : `${formatCalculationMode(mode)} · проект`
+}
+
 export function isGoodAvailableInMode(good: Pick<GoodView, 'availableInExpress' | 'availableInIndividual'>, mode: CalculationMode): boolean {
   return mode === 'express' ? good.availableInExpress : good.availableInIndividual
 }

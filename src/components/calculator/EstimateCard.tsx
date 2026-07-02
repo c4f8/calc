@@ -1,6 +1,6 @@
 import { forwardRef } from 'react'
 import { clsx } from 'clsx'
-import { formatArea, formatCalculationMode, formatCardDate, formatRubles } from '@/lib/calc'
+import { formatArea, formatCalculationModeScope, formatCardDate, formatRubles } from '@/lib/calc'
 import { GoodGlyph } from '@/lib/icons'
 import type { EstimateSnapshot } from '@/types/domain'
 
@@ -25,7 +25,8 @@ export const EstimateCard = forwardRef<HTMLElement, { snapshot: EstimateSnapshot
         </header>
 
         <section className="estimate-hero">
-          <p>Предварительный расчёт · {formatCalculationMode(snapshot.calculationMode)}</p>
+          <p>Предварительный расчёт</p>
+          <div className="estimate-mode-scope">{formatCalculationModeScope(snapshot.calculationMode)}</div>
           <div className="estimate-area">
             <span>{formatArea(snapshot.area)}</span>
             <small>м²</small>
@@ -54,7 +55,7 @@ export const EstimateCard = forwardRef<HTMLElement, { snapshot: EstimateSnapshot
 
         <section className="estimate-card-summary">
           <div>
-            <span>{formatCalculationMode(snapshot.calculationMode)} для проекта {formatArea(snapshot.area)} м²</span>
+            <span>{formatCalculationModeScope(snapshot.calculationMode)} · {formatArea(snapshot.area)} м²</span>
             <small>{snapshot.settings.taxLabel || ' '}</small>
           </div>
           <strong>{formatRubles(snapshot.total)}</strong>

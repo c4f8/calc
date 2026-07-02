@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { ExportPanel } from '@/components/calculator/ExportPanel'
 import { AnimatedNumber } from '@/components/shared/AnimatedNumber'
-import { calculateEstimateLines, calculateTotal, clampArea, formatArea, formatCalculationMode, isGoodAvailableInMode } from '@/lib/calc'
+import { calculateEstimateLines, calculateTotal, clampArea, formatArea, formatCalculationMode, formatCalculationModeScope, isGoodAvailableInMode } from '@/lib/calc'
 import { GoodGlyph } from '@/lib/icons'
 import type { CalculationMode, EstimateSnapshot, GoodView, SettingsView } from '@/types/domain'
 
@@ -322,14 +322,14 @@ export function CalculatorExperience({ goods, settings }: { goods: GoodView[]; s
                     <span>Итого</span>
                     <AnimatePresence mode="popLayout" initial={false}>
                       <motion.small
-                        key={`${calculationMode}-${area}`}
+                        key={calculationMode}
                         className="total-meta"
                         initial={{ opacity: 0, y: 4, filter: 'blur(3px)' }}
                         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                         exit={{ opacity: 0, y: -4, filter: 'blur(3px)' }}
                         transition={presenceTransition}
                       >
-                        {formatCalculationMode(calculationMode)} · {formatArea(area)} м²
+                        {formatCalculationModeScope(calculationMode)}
                       </motion.small>
                     </AnimatePresence>
                   </motion.div>
