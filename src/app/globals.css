@@ -1200,11 +1200,20 @@ h2 {
   padding: 32px 0 28px;
 }
 
-.estimate-card-summary span {
+.estimate-card-summary > div {
+  min-width: 0;
+}
+
+.estimate-summary-label {
   display: block;
   text-transform: uppercase;
   letter-spacing: .13em;
   font-size: 20px;
+}
+
+.estimate-summary-area {
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .estimate-card-summary small {

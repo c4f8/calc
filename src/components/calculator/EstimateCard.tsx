@@ -55,7 +55,9 @@ export const EstimateCard = forwardRef<HTMLElement, { snapshot: EstimateSnapshot
 
         <section className="estimate-card-summary">
           <div>
-            <span>{formatCalculationModeScope(snapshot.calculationMode)} · {formatArea(snapshot.area)} м²</span>
+            <span className="estimate-summary-label">
+              {formatCalculationModeScope(snapshot.calculationMode)} · <span className="estimate-summary-area">{formatArea(snapshot.area)} м²</span>
+            </span>
             <small>{snapshot.settings.taxLabel || ' '}</small>
           </div>
           <strong>{formatRubles(snapshot.total)}</strong>
